@@ -49,6 +49,9 @@ public class AnunciosActivity extends AppCompatActivity {
                 autentcacao.signOut();
                 invalidateOptionsMenu(); //vai recarregar os menus
                 break;
+            case R.id.menu_anuncios:
+                startActivity(new Intent(getApplicationContext(), MeusAnunciosActivity.class));
+                break;
         }
 
         return super.onOptionsItemSelected(item);
