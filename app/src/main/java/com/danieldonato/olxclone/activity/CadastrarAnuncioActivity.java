@@ -20,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.blackcat.currencyedittext.CurrencyEditText;
 import com.danieldonato.olxclone.R;
@@ -57,6 +58,56 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         inicializarComponentes();
         carregarDadosSpinner();
         setSupportActionBar(toolbar);
+    }
+
+    public void salvarAnuncio() {
+
+    }
+
+    public void validarDadosAnuncio(View view) {
+        String rawFone = campoTelefone.getRawText();
+        String estado = spinnerEstado.getSelectedItem().toString();
+        String categoria = spinnerCategoria.getSelectedItem().toString();
+        String titulo = campoTitulo.getText().toString();
+        String valor = String.valueOf(campoValor.getRawValue());
+        String telefone = campoTelefone.getText().toString();
+        String fone = (rawFone != null) ? rawFone : "";
+        String descricao = campoDescricao.getText().toString();
+
+        if(listaFotosRecuperadas.size() != 0) {
+            if(!estado.isEmpty()) {
+                if(!categoria.isEmpty()){
+                    if(!titulo.isEmpty()){
+                        if(!valor.isEmpty() && !valor.equals("0")){
+                            if(!telefone.isEmpty() && fone.length() > 9){
+                                if(!descricao.isEmpty()){
+                                    salvarAnuncio();
+                                }else {
+                                    exibirMensagemErro("Preencha o campo descricao");
+                                }
+                            }else {
+                                exibirMensagemErro("Preencha o campo telefone");
+                            }
+                        }else {
+                            exibirMensagemErro("Preencha o campo valor");
+                        }
+                    }else {
+                        exibirMensagemErro("Preencha o campo titulo");
+                    }
+                }else {
+                    exibirMensagemErro("Preencha o campo categoria");
+                }
+            }else {
+                exibirMensagemErro("Preencha o campo estado");
+            }
+        }else {
+            exibirMensagemErro("Selecione ao menos uma foto!");
+        }
+
+    }
+
+    private void exibirMensagemErro(String mensagem) {
+        Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -102,7 +153,7 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         campoTitulo = findViewById(R.id.editTitulo);
         campoDescricao = findViewById(R.id.editDescricao);
         campoValor = findViewById(R.id.editValor);
-        campoTitulo = findViewById(R.id.editTelefone);
+        campoTelefone = findViewById(R.id.editTelefone);
         spinnerEstado = findViewById(R.id.spinnerEstado);
         spinnerCategoria = findViewById(R.id.spinnerCategoria);
         imagem1 = findViewById(R.id.imageCadastro1);
