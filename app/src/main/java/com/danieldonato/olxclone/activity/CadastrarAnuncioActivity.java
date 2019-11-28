@@ -24,7 +24,14 @@ import android.widget.Toast;
 
 import com.blackcat.currencyedittext.CurrencyEditText;
 import com.danieldonato.olxclone.R;
+import com.danieldonato.olxclone.helper.ConfiguracaoFirebase;
 import com.danieldonato.olxclone.helper.Permissoes;
+import com.danieldonato.olxclone.model.Anuncio;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.santalu.maskedittext.MaskEditText;
 
 import java.util.ArrayList;
@@ -38,8 +45,10 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
     private EditText campoTitulo, campoDescricao;
     private ImageView imagem1, imagem2, imagem3;
     private Spinner spinnerEstado, spinnerCategoria;
+    private Anuncio anuncio;
     private CurrencyEditText campoValor;
     private MaskEditText campoTelefone;
+    private StorageReference storage;
 
     private String[] permissoes = new String[] {
             Manifest.permission.READ_EXTERNAL_STORAGE
@@ -52,6 +61,8 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cadastrar_anuncio);
 
+        storage = ConfiguracaoFirebase.getFirebaseStorage();
+
         Permissoes.validarPermissoes(permissoes, this, 1);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -60,27 +71,71 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
     }
 
+
+
     public void salvarAnuncio() {
+
+        for(int i = 0; i < listaFotosRecuperadas.size(); i++) {
+            salvarFotoStorage(listaFotosRecuperadas.get(i), listaFotosRecuperadas.size(), i);
+        }
 
     }
 
-    public void validarDadosAnuncio(View view) {
-        String rawFone = campoTelefone.getRawText();
+    private void salvarFotoStorage(String urlImagem, final int size, int i) {
+        final List<String> listaUrlFotos = new ArrayList<>();
+        StorageReference imagemAnuncio = storage.child("imagens")
+                .child("anuncios")
+                .child(anuncio.getIdAnuncio())
+                .child("imagem"+i);
+        UploadTask uploadTask = imagemAnuncio.putFile(Uri.parse(urlImagem));
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                String urlConvertida = taskSnapshot.getMetadata().getReference().getDownloadUrl().toString();
+                listaUrlFotos.add(urlConvertida);
+
+                if(size == listaUrlFotos.size()) {
+                    anuncio.setFotos(listaUrlFotos);
+                    anuncio.salvar();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                exibirMensagemErro("Falha ao fazer upload");
+            }
+        });
+    }
+
+    private void configurarAnuncio() {
         String estado = spinnerEstado.getSelectedItem().toString();
         String categoria = spinnerCategoria.getSelectedItem().toString();
         String titulo = campoTitulo.getText().toString();
         String valor = String.valueOf(campoValor.getRawValue());
         String telefone = campoTelefone.getText().toString();
-        String fone = (rawFone != null) ? rawFone : "";
         String descricao = campoDescricao.getText().toString();
 
+        anuncio = new Anuncio();
+        anuncio.setEstado(estado);
+        anuncio.setCategoria(categoria);
+        anuncio.setTitulo(titulo);
+        anuncio.setValor(valor);
+        anuncio.setTelefone(telefone);
+        anuncio.setDescricao(descricao);
+
+    }
+
+    public void validarDadosAnuncio(View view) {
+
+        configurarAnuncio();
+
         if(listaFotosRecuperadas.size() != 0) {
-            if(!estado.isEmpty()) {
-                if(!categoria.isEmpty()){
-                    if(!titulo.isEmpty()){
-                        if(!valor.isEmpty() && !valor.equals("0")){
-                            if(!telefone.isEmpty() && fone.length() > 9){
-                                if(!descricao.isEmpty()){
+            if(!anuncio.getEstado().isEmpty()) {
+                if(!anuncio.getCategoria().isEmpty()){
+                    if(!anuncio.getTitulo().isEmpty()){
+                        if(!anuncio.getValor().isEmpty() && !anuncio.getValor().equals("0")){
+                            if(!anuncio.getTelefone().isEmpty()){
+                                if(!anuncio.getDescricao().isEmpty()){
                                     salvarAnuncio();
                                 }else {
                                     exibirMensagemErro("Preencha o campo descricao");
