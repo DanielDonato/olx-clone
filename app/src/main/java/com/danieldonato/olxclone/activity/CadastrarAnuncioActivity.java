@@ -16,8 +16,10 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
 import com.blackcat.currencyedittext.CurrencyEditText;
 import com.danieldonato.olxclone.R;
@@ -34,6 +36,7 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
 
     private EditText campoTitulo, campoDescricao;
     private ImageView imagem1, imagem2, imagem3;
+    private Spinner spinnerEstado, spinnerCategoria;
     private CurrencyEditText campoValor;
     private MaskEditText campoTelefone;
 
@@ -52,6 +55,7 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         inicializarComponentes();
+        carregarDadosSpinner();
         setSupportActionBar(toolbar);
     }
 
@@ -99,6 +103,8 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         campoDescricao = findViewById(R.id.editDescricao);
         campoValor = findViewById(R.id.editValor);
         campoTitulo = findViewById(R.id.editTelefone);
+        spinnerEstado = findViewById(R.id.spinnerEstado);
+        spinnerCategoria = findViewById(R.id.spinnerCategoria);
         imagem1 = findViewById(R.id.imageCadastro1);
         imagem2 = findViewById(R.id.imageCadastro2);
         imagem3 = findViewById(R.id.imageCadastro3);
@@ -107,6 +113,25 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         imagem3.setOnClickListener(this);
         Locale locale = new Locale("pt", "BR");
         campoValor.setLocale(locale);
+    }
+
+    private void carregarDadosSpinner() {
+
+        String[] estados = getResources().getStringArray(R.array.estados);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, estados
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerEstado.setAdapter(adapter);
+
+        String[] categorias = getResources().getStringArray(R.array.categorias);
+        ArrayAdapter<String> adapterCategoria = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, categorias
+        );
+        adapterCategoria.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategoria.setAdapter(adapterCategoria);
+
     }
 
     @Override
