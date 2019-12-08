@@ -1,25 +1,90 @@
 package com.danieldonato.olxclone.activity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import com.danieldonato.olxclone.R;
+import com.danieldonato.olxclone.adapter.AdapterAnuncios;
 import com.danieldonato.olxclone.helper.ConfiguracaoFirebase;
+import com.danieldonato.olxclone.model.Anuncio;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import dmax.dialog.SpotsDialog;
 
 public class AnunciosActivity extends AppCompatActivity {
 
     private FirebaseAuth autentcacao;
+    private List<Anuncio> anuncios = new ArrayList<>();
+    private RecyclerView recyclerAnunciosPublicos;
+    private Button buttonRegiao, ButtonCategoria;
+    private AdapterAnuncios adapterAnuncios;
+    private DatabaseReference anunciosPublicosRef;
+    private AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anuncios);
+        inicializarComponentes();
 
         autentcacao = ConfiguracaoFirebase.getFirebaseAutenticacao();
+
+        anunciosPublicosRef = ConfiguracaoFirebase.getFirebase()
+                .child("anuncios");
+
+        recyclerAnunciosPublicos.setLayoutManager(new LinearLayoutManager(this));
+        recyclerAnunciosPublicos.setHasFixedSize(true);
+        adapterAnuncios = new AdapterAnuncios(anuncios, this);
+        recyclerAnunciosPublicos.setAdapter(adapterAnuncios);
+
+        recuperarAnunciosPublicos();
+    }
+
+    public void recuperarAnunciosPublicos() {
+        alertDialog = new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Recuperando Anúncios")
+                .setCancelable(false)
+                .build();
+        alertDialog.show();
+        anuncios.clear();
+        anunciosPublicosRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot estados : dataSnapshot.getChildren()) {
+                    for(DataSnapshot categoria : estados.getChildren()) {
+                        for(DataSnapshot ds : categoria.getChildren()) {
+                            Anuncio anuncio = ds.getValue(Anuncio.class);
+                            anuncios.add(anuncio);
+                        }
+                    }
+                }
+                Collections.reverse(anuncios);
+                adapterAnuncios.notifyDataSetChanged();
+                alertDialog.dismiss();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -55,5 +120,9 @@ public class AnunciosActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void inicializarComponentes() {
+        recyclerAnunciosPublicos = findViewById(R.id.recyclerAnunciosPublicos);
     }
 }
