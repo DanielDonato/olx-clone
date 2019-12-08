@@ -40,7 +40,26 @@ public class Anuncio {
                 .child(getCategoria())
                 .child(getIdAnuncio())
                 .setValue(this);
+    }
 
+    public void remover() {
+        String idUsuario = ConfiguracaoFirebase.getIdUsuario();
+        DatabaseReference anucioRef = ConfiguracaoFirebase.getFirebase()
+                .child("meus_anuncios")
+                .child(idUsuario)
+                .child(getIdAnuncio());
+        anucioRef.removeValue();
+        removerAnuncioPublico();
+    }
+
+
+    public void removerAnuncioPublico() {
+        DatabaseReference anucioRef = ConfiguracaoFirebase.getFirebase()
+                .child("anuncios")
+                .child(getEstado())
+                .child(getCategoria())
+                .child(getIdAnuncio());
+        anucioRef.removeValue();
     }
 
     public String getIdAnuncio() {

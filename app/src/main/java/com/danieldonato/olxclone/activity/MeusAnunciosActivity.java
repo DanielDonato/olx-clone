@@ -1,5 +1,6 @@
 package com.danieldonato.olxclone.activity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,10 +11,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 
 import com.danieldonato.olxclone.R;
 import com.danieldonato.olxclone.adapter.AdapterAnuncios;
 import com.danieldonato.olxclone.helper.ConfiguracaoFirebase;
+import com.danieldonato.olxclone.helper.RecyclerItemClickListener;
 import com.danieldonato.olxclone.model.Anuncio;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import dmax.dialog.SpotsDialog;
+
 public class MeusAnunciosActivity extends AppCompatActivity {
 
     private RecyclerView recyclerAnuncios;
@@ -31,6 +36,7 @@ public class MeusAnunciosActivity extends AppCompatActivity {
     private AdapterAnuncios adapterAnuncios;
     private DatabaseReference anuncioUsuarioRef;
     private ValueEventListener valueEventListener;
+    private AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +67,31 @@ public class MeusAnunciosActivity extends AppCompatActivity {
         recyclerAnuncios.setAdapter(adapterAnuncios);
 
         recuperarAnuncios();
+
+        recyclerAnuncios.addOnItemTouchListener(
+                new RecyclerItemClickListener(
+                        this,
+                        recyclerAnuncios,
+                        new RecyclerItemClickListener.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(View view, int position) {
+
+                            }
+
+                            @Override
+                            public void onLongItemClick(View view, int position) {
+                                Anuncio anuncioSelecionado = anuncios.get(position);
+                                anuncioSelecionado.remover();
+                                adapterAnuncios.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                            }
+                        }
+                )
+        );
     }
 
     private void inicializarComponentes() {
@@ -68,6 +99,12 @@ public class MeusAnunciosActivity extends AppCompatActivity {
     }
 
     private void recuperarAnuncios() {
+        alertDialog = new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Recuperando Anúncios")
+                .setCancelable(false)
+                .build();
+        alertDialog.show();
         valueEventListener = anuncioUsuarioRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -77,6 +114,7 @@ public class MeusAnunciosActivity extends AppCompatActivity {
                 }
                 Collections.reverse(anuncios);
                 adapterAnuncios.notifyDataSetChanged();
+                alertDialog.dismiss();
             }
 
             @Override
