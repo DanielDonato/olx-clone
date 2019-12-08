@@ -2,6 +2,7 @@ package com.danieldonato.olxclone.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,7 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -39,6 +39,8 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
+import dmax.dialog.SpotsDialog;
+
 public class CadastrarAnuncioActivity extends AppCompatActivity
     implements View.OnClickListener {
 
@@ -49,6 +51,7 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
     private CurrencyEditText campoValor;
     private MaskEditText campoTelefone;
     private StorageReference storage;
+    private AlertDialog alertDialog;
 
     private String[] permissoes = new String[] {
             Manifest.permission.READ_EXTERNAL_STORAGE
@@ -71,10 +74,13 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
     }
 
-
-
     public void salvarAnuncio() {
-
+        alertDialog = new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Salvando Anúncio")
+                .setCancelable(false)
+                .build();
+        alertDialog.show();
         for(int i = 0; i < listaFotosRecuperadas.size(); i++) {
             salvarFotoStorage(listaFotosRecuperadas.get(i), listaFotosRecuperadas.size(), i);
         }
@@ -97,6 +103,8 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
                 if(size == listaUrlFotos.size()) {
                     anuncio.setFotos(listaUrlFotos);
                     anuncio.salvar();
+                    alertDialog.dismiss();
+                    finish();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -111,7 +119,7 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         String estado = spinnerEstado.getSelectedItem().toString();
         String categoria = spinnerCategoria.getSelectedItem().toString();
         String titulo = campoTitulo.getText().toString();
-        String valor = String.valueOf(campoValor.getRawValue());
+        String valor = campoValor.getText().toString();
         String telefone = campoTelefone.getText().toString();
         String descricao = campoDescricao.getText().toString();
 
@@ -128,12 +136,13 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
     public void validarDadosAnuncio(View view) {
 
         configurarAnuncio();
+        String valor = String.valueOf(campoValor.getRawValue());
 
         if(listaFotosRecuperadas.size() != 0) {
             if(!anuncio.getEstado().isEmpty()) {
                 if(!anuncio.getCategoria().isEmpty()){
                     if(!anuncio.getTitulo().isEmpty()){
-                        if(!anuncio.getValor().isEmpty() && !anuncio.getValor().equals("0")){
+                        if(!valor.isEmpty() && !valor.equals("0")){
                             if(!anuncio.getTelefone().isEmpty()){
                                 if(!anuncio.getDescricao().isEmpty()){
                                     salvarAnuncio();
