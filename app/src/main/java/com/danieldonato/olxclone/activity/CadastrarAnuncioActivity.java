@@ -97,15 +97,20 @@ public class CadastrarAnuncioActivity extends AppCompatActivity
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                String urlConvertida = taskSnapshot.getMetadata().getReference().getDownloadUrl().toString();
-                listaUrlFotos.add(urlConvertida);
+                taskSnapshot.getMetadata().getReference().getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String urlConvertida = uri.toString();
+                        listaUrlFotos.add(urlConvertida);
 
-                if(size == listaUrlFotos.size()) {
-                    anuncio.setFotos(listaUrlFotos);
-                    anuncio.salvar();
-                    alertDialog.dismiss();
-                    finish();
-                }
+                        if(size == listaUrlFotos.size()) {
+                            anuncio.setFotos(listaUrlFotos);
+                            anuncio.salvar();
+                            alertDialog.dismiss();
+                            finish();
+                        }
+                    }
+                });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
