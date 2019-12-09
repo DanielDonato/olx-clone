@@ -75,7 +75,10 @@ public class MeusAnunciosActivity extends AppCompatActivity {
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
-
+                                Anuncio anuncioSelecionado = anuncios.get(position);
+                                Intent i = new Intent(MeusAnunciosActivity.this, DetalhesProdutoActivity.class);
+                                i.putExtra("anuncioSelecionado", anuncioSelecionado);
+                                startActivity(i);
                             }
 
                             @Override
