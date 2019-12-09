@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.danieldonato.olxclone.R;
 import com.danieldonato.olxclone.adapter.AdapterAnuncios;
 import com.danieldonato.olxclone.helper.ConfiguracaoFirebase;
+import com.danieldonato.olxclone.helper.RecyclerItemClickListener;
 import com.danieldonato.olxclone.model.Anuncio;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -62,6 +64,31 @@ public class AnunciosActivity extends AppCompatActivity {
         recyclerAnunciosPublicos.setAdapter(adapterAnuncios);
 
         recuperarAnunciosPublicos();
+
+        recyclerAnunciosPublicos.addOnItemTouchListener(
+                new RecyclerItemClickListener(
+                        this,
+                        recyclerAnunciosPublicos,
+                        new RecyclerItemClickListener.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(View view, int position) {
+                                Anuncio anuncio = anuncios.get(position);
+                                Intent i = new Intent(AnunciosActivity.this, DetalhesProdutoActivity.class);
+                                i.putExtra("anuncioSelecionado", anuncio);
+                                startActivity(i);
+                            }
+
+                            @Override
+                            public void onLongItemClick(View view, int position) {
+
+                            }
+
+                            @Override
+                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                            }
+                        }
+                ));
     }
 
     public void filtrarPorEstado(View view) {
