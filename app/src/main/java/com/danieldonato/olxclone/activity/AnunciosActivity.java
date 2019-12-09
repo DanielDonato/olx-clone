@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.danieldonato.olxclone.R;
 import com.danieldonato.olxclone.adapter.AdapterAnuncios;
@@ -41,6 +42,8 @@ public class AnunciosActivity extends AppCompatActivity {
     private DatabaseReference anunciosPublicosRef;
     private AlertDialog alertDialog;
     private String filtroEstado = "";
+    private String filtroCategoria = "";
+    private boolean filtrandoPorEstado = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +85,7 @@ public class AnunciosActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 filtroEstado = spinnerEstado.getSelectedItem().toString();
                 recuperarAnunciosPorEstado();
+                filtrandoPorEstado = true;
             }
         });
 
@@ -115,6 +119,77 @@ public class AnunciosActivity extends AppCompatActivity {
                         Anuncio anuncio = ds.getValue(Anuncio.class);
                         anuncios.add(anuncio);
                     }
+                }
+                Collections.reverse(anuncios);
+                adapterAnuncios.notifyDataSetChanged();
+                alertDialog.dismiss();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void filtrarPorCategoria(View view) {
+        if(!filtrandoPorEstado) {
+            Toast.makeText(this, "Escolha primeiro um filtro por estado",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        AlertDialog.Builder dialogEstado = new AlertDialog.Builder(this);
+        dialogEstado.setTitle("Selecione a categoria desejado");
+
+        View viewSpinner = getLayoutInflater().inflate(R.layout.dialog_spinner, null);
+
+        final Spinner spinnerCategoria = viewSpinner.findViewById(R.id.spinnerFiltro);
+        String[] estados = getResources().getStringArray(R.array.categorias);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, estados
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategoria.setAdapter(adapter);
+        dialogEstado.setView(viewSpinner);
+
+        dialogEstado.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                filtroCategoria = spinnerCategoria.getSelectedItem().toString();
+                recuperarAnunciosPorCategoria();
+            }
+        });
+
+        dialogEstado.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+
+        AlertDialog dialog = dialogEstado.create();
+        dialog.show();
+    }
+
+    public void recuperarAnunciosPorCategoria() {
+        alertDialog = new SpotsDialog.Builder()
+                .setContext(this)
+                .setMessage("Recuperando Anúncios")
+                .setCancelable(false)
+                .build();
+        alertDialog.show();
+        anunciosPublicosRef = ConfiguracaoFirebase.getFirebase()
+                .child("anuncios")
+                .child(filtroEstado)
+                .child(filtroCategoria);
+        anunciosPublicosRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                anuncios.clear();
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Anuncio anuncio = ds.getValue(Anuncio.class);
+                    anuncios.add(anuncio);
                 }
                 Collections.reverse(anuncios);
                 adapterAnuncios.notifyDataSetChanged();
